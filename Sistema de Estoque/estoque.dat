@@ -1,0 +1,25 @@
+cont_produto: 2
+{
+	codigo: 1
+	grupo: 1
+	descricao: 1
+	unidade: 1
+	fornecedor: 1
+	quantidade: 1
+	pr_compra: R$ 1,00
+	pr_venda: R$ 0,50
+	lucro: R$ 1,00
+	estoque_min: 1
+}
+{
+	codigo: 123456789123
+	grupo: grupo 1
+	descricao: descricao produto um
+	unidade: un
+	fornecedor: fornecedor um
+	quantidade: 1
+	pr_compra: R$ 50,00
+	pr_venda: R$ 50,00
+	lucro: R$ 50,00
+	estoque_min: 50
+}
