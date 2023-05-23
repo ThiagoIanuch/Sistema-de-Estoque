@@ -10,6 +10,7 @@
 #define CODIGO_EXISTENTE "\033[31m\nEste código já foi cadastrado no sistema!\x1B[0m\n\n"
 #define PRODUTO_NAO_ENCONTRADO "\n\033[31mProduto não encontrado!\x1B[0m\n\n"
 #define GRUPO_NAO_ENCONTRADO "\n\033[31mGrupo não encontrado!\x1B[0m\n\n"
+#define FORNECEDOR_NAO_ENCONTRADO "\n\033[31mFornecedor não encontrado!\x1B[0m\n\n"
 #define CANCELADO_SUCESSO "\n\033[31mCancelado com sucesso!\x1B[0m\n\n"
 #define CADASTRO_SUCESSO "\n\033[32mProduto cadastrado com sucesso!\x1B[0m\n\n"
 #define DELETADO_SUCESSO "\n\033[32mProduto deletado com sucesso!\x1B[0m\n\n"
@@ -165,39 +166,99 @@ void alterarDados() {
 	
 	lerArquivo();
 
+	// Ler o código
 	if (cont_produto > 0) {
 		long long int codigo_busca;
 		printf("Digite o código do produto que deseja alterar algum dado: ");
 		scanf("%lli", &codigo_busca);
 
-		bool codigo_encontrado = false;
-		char descricao_produto_encontrado[50];
+		bool produto_encontrado = false;
 
+		// Verificar
 		for (int i = 0; i < cont_produto; i++) {
 			if (codigo_busca == produto[i].codigo) {
-				codigo_encontrado = true;
+				produto_encontrado = true;
 
-				strcpy(descricao_produto_encontrado, produto[i].descricao);
+				system(LIMPAR);
+
+				// Opção de escolha do dado a ser alterado
+				int opcao;
+				do {
+					printf("O código do produto a ter os dados alterados é \033[32m%lli\x1B[0m e a sua descrição é \033[32m%s\x1B[0m!\n\n", produto[i].codigo, produto[i].descricao);
+
+					printf("<01>. Alterar o grupo\n");
+					printf("<02>. Alterar a descrição\n");
+					printf("<03>. Alterar a unidade\n");
+					printf("<04>. Alterar o fornecedor\n");
+					printf("<05>. Alterar a quantidade\n");
+					printf("<06>. Alterar o preço de compra\n");
+					printf("<07>. Alterar o preço de venda\n");
+					printf("<08>. Alterar o lucro mínimo.\n");
+					printf("<09>. Alterar o estoque mínimo.\n");
+					printf("<10>. Cancelar\n\n");
+
+					printf("Escolha uma das opções: ");
+					scanf("%i", &opcao);
+
+					switch (opcao) {
+					case 1:
+						printf("\nDigite o novo grupo: ");
+						getchar();
+						gets_s(produto[i].grupo);
+						break;
+					case 2:
+						printf("\nDigite a nova descrição: ");
+						getchar();
+						gets_s(produto[i].descricao);
+						break;
+					case 3:
+						printf("\nDigite a nova unidade: ");
+						getchar();
+						gets_s(produto[i].unidade);
+						break;
+					case 4:
+						printf("\nDigite o novo fornecedor: ");
+						getchar();
+						gets_s(produto[i].fornecedor);
+						break;
+					case 5:
+						printf("\nDigite a nova quantidade: ");
+						scanf("%i", &produto[i].quantidade);
+						break;
+					case 6:
+						printf("\nDigite o novo preço de compra: ");
+						scanf("%f", &produto[i].pr_compra);
+						break;
+					case 7:
+						printf("\nDigite o novo preço de venda: ");
+						scanf("%f", &produto[i].pr_venda);
+						break;
+					case 8:
+						printf("\nDigite o novo lucro mínimo: ");
+						scanf("%f", &produto[i].lucro);
+						break;
+					case 9:
+						printf("\nDigite o novo estoque mínimo: ");
+						scanf("%i", &produto[i].estoque_min);
+						break;
+					case 10:
+						printf(CANCELADO_SUCESSO);
+						break;
+					default:
+						system(LIMPAR);
+						printf(OPCAO_INVALIDA);
+					}
+				} while (opcao < 1 || opcao > 10);
+
+				if (opcao != 10) {
+					escreverArquivo(false, 0);
+					printf(ALTERADO_SUCESSO);
+				}
+				break;
 			}
 		}
 
-		if (codigo_encontrado) {
-			system(LIMPAR);
-
-			printf("O código do produto a ter os dados alterados é \033[32m%lli\x1B[0m e a sua descrição é \033[32m%s\x1B[0m!\n\n", codigo_encontrado, descricao_produto_encontrado);
-			printf("<01>. Grupo\n");
-			printf("<02>. Descrição\n");
-			printf("<03>. Unidade\n");
-			printf("<04>. Fornecedor\n");
-			printf("<05>. Quantidade\n");
-			printf("<06>. Preço de compra\n");
-			printf("<07>. Preço de venda\n");
-			printf("<08>. Lucro.\n");
-			printf("<09>. Estoque mínimo.\n");
-			printf("<10>. Cancelar\n");
-
-		}
-		else {
+		if (!produto_encontrado) {
 			printf(PRODUTO_NAO_ENCONTRADO);
 		}
 	}
@@ -210,92 +271,6 @@ void alterarDados() {
 	system(LIMPAR);
 }
 
-// Função para realizar aumento ou desconto de um grupo de produtos
-void alterarPrecos() {
-	system(LIMPAR);
-
-	lerArquivo();
-
-	if (cont_produto > 0) {
-		// Pedir o grupo e verificar se existe
-		char grupo_busca[50];
-
-		printf("Digite o grupo do produto: ");
-		getchar();
-		gets_s(grupo_busca);
-
-		bool grupo_encontrado = false;
-		for (int i = 0; i < cont_produto; i++) {
-			if (strcmp(grupo_busca, produto[i].grupo) == 0) {
-				grupo_encontrado = true;
-			}
-		}
-
-		if (grupo_encontrado) {
-			float percentual;
-
-			// Perguntar o percentual
-			printf("\nDigite o percentual a ser alterado: ");
-			scanf("%f", &percentual);
-
-			system(LIMPAR);
-
-			int opcao;
-			do {
-				// Escolher se será realizado desconto ou aumento
-				printf("O grupo a sofrer alteração no preço será \033[32m%s\x1B[0m e o percentual será de \033[32m%.2f%%\x1B[0m\n\n", grupo_busca, percentual);
-				printf("<01>. Realizar desconto\n");
-				printf("<02>. Realizar aumento\n");
-				printf("<03>. Cancelar\n\n");
-
-				printf("Escolha uma das opções: ");
-				scanf("%i", &opcao);
-
-				switch (opcao) {
-					// Desconto
-					case 1:
-						for (int i = 0; i < cont_produto; i++) {
-							if (strcmp(grupo_busca, produto[i].grupo) == 0) {
-								produto[i].pr_venda -= (produto[i].pr_venda / 100) * percentual;
-							}
-						}
-						escreverArquivo(false, 0 );
-						printf(ALTERADO_SUCESSO);
-						break;
-					// Aumento
-					case 2:
-						for (int i = 0; i < cont_produto; i++) {
-							if (strcmp(grupo_busca, produto[i].grupo) == 0) {
-								produto[i].pr_venda += (produto[i].pr_venda / 100) * percentual;
-							}
-						}
-						escreverArquivo(false, 0);
-						printf(ALTERADO_SUCESSO);
-						break;
-					// Cancelar
-					case 3:
-						printf(CANCELADO_SUCESSO);
-						break;
-					default:
-						system(LIMPAR);
-						printf(OPCAO_INVALIDA);
-						break;
-				}
-			} while (opcao < 1 || opcao > 3);
-		}
-		else {
-			printf(GRUPO_NAO_ENCONTRADO);
-		}
-	}
-	else {
-		printf(NENHUM_CADASTRO);
-	}
-
-	system(PAUSAR);
-
-	system(LIMPAR);
-}
-
 // Função para excluir produtos do sistema
 void excluirProduto() {
 	system(LIMPAR);
@@ -304,7 +279,7 @@ void excluirProduto() {
 
 	if (cont_produto > 0) {
 		long long int deletar_codigo;
-		bool verificar_codigo = false;
+		bool produto_encontrado = false;
 
 		// Verificar o código
 		printf("Digite o código do produto a ser deletado: ");
@@ -312,18 +287,18 @@ void excluirProduto() {
 
 		for (int i = 0; i < cont_produto; i++) {
 			if (deletar_codigo == produto[i].codigo) {
-				verificar_codigo = true;
+				produto_encontrado = true;
+
+				escreverArquivo(true, produto[i].codigo);
+
+				printf(DELETADO_SUCESSO);
+
+				break;
 			}
 		}
 
 		// Deletar o produto do sistema se o código existir
-		if (verificar_codigo) {
-
-			escreverArquivo(true, deletar_codigo);
-			
-			printf(DELETADO_SUCESSO);
-		}
-		else {
+		if (!produto_encontrado) {
 			printf(PRODUTO_NAO_ENCONTRADO);
 		}
 	}
@@ -454,7 +429,7 @@ void listarProdutos() {
 }
 
 // Função para listar os preços
-void listarPreços() {
+void listarPrecos() {
 	system(LIMPAR);
 
 	lerArquivo();
@@ -462,7 +437,7 @@ void listarPreços() {
 	// Exibir dados
 	if (cont_produto > 0) {
 		printf("====================================================================================\n");
-		printf("Código               Descrição                                          Preço\n");
+		printf("Código               Descrição                                          Preço venda\n");
 		printf("====================================================================================\n");
 
 		for (int i = 0; i < cont_produto; i++) {
@@ -479,8 +454,130 @@ void listarPreços() {
 	system(LIMPAR);
 }
 
+// Função para realizar aumento ou desconto de um grupo de produtos
+void movimentacaoProdutos() {
+	system(LIMPAR);
+
+	lerArquivo();
+
+	if (cont_produto > 0) {
+		// Pedir o grupo e verificar se existe
+		char grupo_busca[50];
+
+		printf("Digite o grupo do produto: ");
+		getchar();
+		gets_s(grupo_busca);
+
+		bool grupo_encontrado = false;
+		for (int i = 0; i < cont_produto; i++) {
+			if (strcmp(grupo_busca, produto[i].grupo) == 0) {
+				grupo_encontrado = true;
+			}
+		}
+
+		if (grupo_encontrado) {
+			// Perguntar o percentual
+			float percentual;
+			printf("\nDigite o percentual a ser alterado: ");
+			scanf("%f", &percentual);
+
+			system(LIMPAR);
+
+			int opcao;
+			do {
+				// Escolher se será realizado desconto ou aumento
+				printf("O grupo a sofrer alteração no preço será \033[32m%s\x1B[0m e o percentual será de \033[32m%.2f%%\x1B[0m\n\n", grupo_busca, percentual);
+				printf("<01>. Realizar desconto\n");
+				printf("<02>. Realizar aumento\n");
+				printf("<03>. Cancelar\n\n");
+
+				printf("Escolha uma das opções: ");
+				scanf("%i", &opcao);
+
+				switch (opcao) {
+					// Desconto
+					case 1:
+						for (int i = 0; i < cont_produto; i++) {
+							if (strcmp(grupo_busca, produto[i].grupo) == 0) {
+								produto[i].pr_venda -= (produto[i].pr_venda / 100) * percentual;
+							}
+						}
+						escreverArquivo(false, 0);
+						printf(ALTERADO_SUCESSO);
+						break;
+					// Aumento
+					case 2:
+						for (int i = 0; i < cont_produto; i++) {
+							if (strcmp(grupo_busca, produto[i].grupo) == 0) {
+								produto[i].pr_venda += (produto[i].pr_venda / 100) * percentual;
+							}
+						}
+						escreverArquivo(false, 0);
+						printf(ALTERADO_SUCESSO);
+						break;
+					// Cancelar
+					case 3:
+						printf(CANCELADO_SUCESSO);
+						break;
+					default:
+						system(LIMPAR);
+						printf(OPCAO_INVALIDA);
+						break;
+				}
+			} while (opcao < 1 || opcao > 3);
+		}
+		else {
+			printf(GRUPO_NAO_ENCONTRADO);
+		}
+
+	}
+	else {
+		printf(NENHUM_CADASTRO);
+	}
+
+	system(PAUSAR);
+
+	system(LIMPAR);
+}
+
+// Função para listar os produtos de um fornecedor
 void produtosFornecedores() {
 	system(LIMPAR);
+	
+	lerArquivo();
+
+	if (cont_produto > 0) {
+		// Pedir o fornecedor e realizar busca
+		char fornecedor_busca[50];
+		printf("Digite o fornecedor: ");
+		getchar();
+		gets_s(fornecedor_busca);
+
+		bool fornecedor_encontrado = false;
+		for (int i = 0; i < cont_produto; i++) {
+			if (strcmp(fornecedor_busca, produto[i].fornecedor) == 0) {
+				fornecedor_encontrado = true;
+			}
+		}
+
+		// Exibir os produtos
+		if (fornecedor_encontrado) {
+			printf("\nCódigo               Descrição\n");
+			printf("====================================================================================\n");;
+			for (int i = 0; i < cont_produto; i++) {
+				if (strcmp(fornecedor_busca, produto[i].fornecedor) == 0) {
+					printf("%-20.13lli %s\n", produto[i].codigo, produto[i].descricao);
+				}
+			}
+			printf("\n");
+		}
+		else {
+			printf(FORNECEDOR_NAO_ENCONTRADO);
+		}
+	}
+	else {
+		printf(NENHUM_CADASTRO);
+	}
 
 	system(PAUSAR);
 
@@ -498,13 +595,13 @@ int main() {
 		printf("================ Sistema de Estoque ================\n");
 		printf("<01>. Adicionar produto.\n");
 		printf("<02>. Alterar dados de um produto.\n");
-		printf("<03>. Realizar aumento ou desconto de um grupo.\n");
-		printf("<04>. Excluir produto.\n");
-		printf("<05>. Procurar por um produto pelo código.\n");
-		printf("<06>. Procurar por um produto pela descrição.\n");
-		printf("<07>. Listar todos os produtos.\n");
-		printf("<08>. Listar preços\n");
-		printf("<09>. Listar produtos fornecidos por umfornecedor\n");
+		printf("<03>. Excluir produto.\n");
+		printf("<04>. Procurar por um produto pelo código.\n");
+		printf("<05>. Procurar por um produto pela descrição.\n");
+		printf("<06>. Listar todos os produtos.\n");
+		printf("<07>. Listar preços\n");
+		printf("<08>. Realizar aumento ou desconto de um grupo.\n");
+		printf("<09>. Produtos fornecidos por fornecedores\n");
 		printf("<10>. Sair do programa.\n");
 		printf("====================================================\n");
 
@@ -519,22 +616,22 @@ int main() {
 				alterarDados();
 				break;
 			case 3:
-				alterarPrecos();
-				break;
-			case 4:
 				excluirProduto();
 				break;
-			case 5:
+			case 4:
 				buscarProdutoCodigo();
 				break;
-			case 6:
+			case 5:
 				buscarProdutoDescricao();
 				break;
-			case 7:
+			case 6:
 				listarProdutos();
 				break;
+			case 7:
+				listarPrecos();
+				break;
 			case 8:
-				listarPreços();
+				movimentacaoProdutos();
 				break;
 			case 9:
 				produtosFornecedores();
@@ -550,4 +647,4 @@ int main() {
 	} while (opcao != 10);
 
 	return 0;
-}
+} 

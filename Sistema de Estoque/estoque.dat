@@ -1,4 +1,4 @@
-cont_produto: 2
+cont_produto: 4
 {
 	codigo: 1
 	grupo: 1
@@ -7,19 +7,43 @@ cont_produto: 2
 	fornecedor: 1
 	quantidade: 1
 	pr_compra: R$ 1,00
-	pr_venda: R$ 0,50
+	pr_venda: R$ 1,00
 	lucro: R$ 1,00
 	estoque_min: 1
 }
 {
-	codigo: 123456789123
-	grupo: grupo 1
-	descricao: descricao produto um
-	unidade: un
-	fornecedor: fornecedor um
-	quantidade: 1
-	pr_compra: R$ 50,00
-	pr_venda: R$ 50,00
-	lucro: R$ 50,00
+	codigo: 2
+	grupo: 2
+	descricao: tenis 38
+	unidade: 2
+	fornecedor: 2
+	quantidade: 2
+	pr_compra: R$ 2,00
+	pr_venda: R$ 2,00
+	lucro: R$ 2,00
 	estoque_min: 50
+}
+{
+	codigo: 3
+	grupo: 3
+	descricao: 3
+	unidade: 3
+	fornecedor: 2
+	quantidade: 3
+	pr_compra: R$ 3,00
+	pr_venda: R$ 3,00
+	lucro: R$ 3,00
+	estoque_min: 3
+}
+{
+	codigo: 4
+	grupo: 3
+	descricao: 3
+	unidade: 3
+	fornecedor: 2
+	quantidade: 2
+	pr_compra: R$ 2,00
+	pr_venda: R$ 2,00
+	lucro: R$ 2,00
+	estoque_min: 2
 }
