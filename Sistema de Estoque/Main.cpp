@@ -1,28 +1,27 @@
-#include <stdio.h>
+Ôªø#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <locale.h>
-#include <windows.h>
+#include <ctype.h>
+#include <math.h>
 
-// DefinÁıes de mensagens e outros
+// Defin√ß√µes de mensagens e outros
 #define MAX_PRODUTO 50
-#define OPCAO_INVALIDA "\033[31mOpÁ„o inv·lida. Escolha novamente!\x1B[0m\n\n"
+#define OPCAO_INVALIDA "\033[31mOp√ß√£o inv√°lida. Escolha novamente!\x1B[0m\n\n"
 #define NENHUM_CADASTRO "\033[31mNenhum produto foi cadastrado no sistema!\x1B[0m\n\n"
-#define QUANTIA_MAXIMA "\033[31mN„o È possÌvel adicionar mais produtos, a quantia m·xima j· foi adicionada!\x1B[0m\n\n"
-#define CODIGO_EXISTENTE "\033[31m\nEste cÛdigo j· foi cadastrado no sistema!\x1B[0m\n\n"
-#define PRODUTO_NAO_ENCONTRADO "\n\033[31mProduto n„o encontrado!\x1B[0m\n\n"
-#define GRUPO_NAO_ENCONTRADO "\n\033[31mGrupo n„o encontrado!\x1B[0m\n\n"
-#define FORNECEDOR_NAO_ENCONTRADO "\n\033[31mFornecedor n„o encontrado!\x1B[0m\n\n"
-#define CANCELADO_SUCESSO "\n\033[31mCancelado com sucesso!\x1B[0m\n\n"
+#define QUANTIA_MAXIMA "\033[31mN√£o √© poss√≠vel adicionar mais produtos, a quantia m√°xima j√° foi cadastrada!\x1B[0m\n\n"
+#define PRODUTO_EXISTENTE "\033[31m\nEste produto j√° foi cadastrado no sistema!\x1B[0m\n\n"
+#define PRODUTO_NAO_ENCONTRADO "\n\033[31mProduto n√£o encontrado!\x1B[0m\n\n"
+#define GRUPO_NAO_ENCONTRADO "\n\033[31mGrupo n√£o encontrado!\x1B[0m\n\n"
+#define FORNECEDOR_NAO_ENCONTRADO "\n\033[31mFornecedor n√£o encontrado!\x1B[0m\n\n"
+#define CANCELADO_SUCESSO "\n\033[31mOpera√ß√£o cancelada com sucesso!\x1B[0m\n\n"
 #define CADASTRO_SUCESSO "\n\033[32mProduto cadastrado com sucesso!\x1B[0m\n\n"
 #define DELETADO_SUCESSO "\n\033[32mProduto deletado com sucesso!\x1B[0m\n\n"
-#define ALTERADO_SUCESSO "\n\033[32mAlterado com sucesso!\x1B[0m\n\n"
-#define FORMATACAO_ESCRITA "\n{\n\tcodigo: %lli\n\tgrupo: %s\n\tdescricao: %s\n\tunidade: %s\n\tfornecedor: %s\n\tquantidade: %i\n\tpr_compra: R$ %.2f\n\tpr_venda: R$ %.2f\n\tlucro: R$ %.2f\n\testoque_min: %i\n}"
-#define FORMATACAO_LEITURA "\n{\n\tcodigo: %lli\n\tgrupo: %50[^\n]\n\tdescricao: %50[^\n]\n\tunidade: %3[^\n]\n\tfornecedor: %50[^\n]\n\tquantidade: %i\n\tpr_compra: R$ %f\n\tpr_venda: R$ %f\n\tlucro: R$ %f\n\testoque_min: %i\n}"
-#define DADOS_ESCRITA produto[i].codigo, produto[i].grupo, produto[i].descricao, produto[i].unidade, produto[i].fornecedor, produto[i].quantidade, produto[i].pr_compra, produto[i].pr_venda, produto[i].lucro, produto[i].estoque_min
-#define DADOS_LEITURA &produto[i].codigo, &produto[i].grupo, &produto[i].descricao, &produto[i].unidade, &produto[i].fornecedor, &produto[i].quantidade, &produto[i].pr_compra, &produto[i].pr_venda, &produto[i].lucro, &produto[i].estoque_min
+#define ALTERADO_SUCESSO "\n\033[32mAltera√ß√£o realizada com sucesso!\x1B[0m\n\n"
 #define PAUSAR "pause"
 #define LIMPAR "cls"
 
-// Estrutura do produto e vari·veis globais
+// Estrutura do produto e vari√°veis globais
 typedef struct TProduto {
 	long long int codigo;
 	char grupo[50];
@@ -34,21 +33,21 @@ typedef struct TProduto {
 	float pr_venda;
 	float lucro;
 	int estoque_min;
-} TProduto;
-TProduto produto[MAX_PRODUTO];
+}TProduto;
 
+TProduto produto[MAX_PRODUTO];
 int cont_produto;
 FILE* arquivo;
 
-// FunÁ„o para ler os dados do arquivo
+// Fun√ß√£o para ler os dados do arquivo
 void lerArquivo() {
-	arquivo = fopen("estoque.dat", "r");
+	arquivo = fopen("estoque.dat", "r+b");
 
 	if (arquivo != NULL) {
-		fscanf(arquivo, "cont_produto: %i", &cont_produto);
+		fread(&cont_produto, sizeof(cont_produto), 1, arquivo);
 
 		for (int i = 0; i < cont_produto; i++) {
-			fscanf(arquivo, FORMATACAO_LEITURA, DADOS_LEITURA);
+			fread(&produto[i], sizeof(TProduto), 1, arquivo);
 		}
 
 		fclose(arquivo);
@@ -58,99 +57,111 @@ void lerArquivo() {
 	}
 }
 
-// FunÁ„o para escrever os dados no arquivo
-void escreverArquivo(bool deletar, long long int deletar_codigo) {
-	arquivo = fopen("estoque.dat", "w");
+// Fun√ß√£o para escrever os dados no arquivo
+void escreverArquivo() {
+	arquivo = fopen("estoque.dat", "w+b");
 
 	if (arquivo != NULL) {
+		fwrite(&cont_produto, sizeof(cont_produto), 1, arquivo);
 
-		if (!deletar) {
-			fprintf(arquivo, "cont_produto: %i", cont_produto);
+		TProduto aux;
 
-			for (int i = 0; i < cont_produto; i++) {
-				fprintf(arquivo, FORMATACAO_ESCRITA, DADOS_ESCRITA);
-			}
-		}
-		else {
-			fprintf(arquivo, "cont_produto: %i", cont_produto - 1);
-
-			for (int i = 0; i < cont_produto; i++) {
-				if (deletar_codigo != produto[i].codigo) {
-					fprintf(arquivo, FORMATACAO_ESCRITA, DADOS_ESCRITA);
+		// Ao gravar os dados no arquivo j√° deixa organizado pelo c√≥digo
+		for (int i = 0; i < cont_produto; i++) {
+			for (int j = i + 1; j < cont_produto; j++) {
+				if (produto[i].codigo > produto[j].codigo) {
+					aux = produto[i];
+					produto[i] = produto[j];
+					produto[j] = aux;
 				}
 			}
+			fwrite(&produto[i], sizeof(TProduto), 1, arquivo);
 		}
 
 		fclose(arquivo);
 	}
 }
 
-// FunÁ„o para adicionar os produtos no sistema
+// Fun√ß√£o para adicionar os produtos no sistema
 void adicionarProduto() {
 	system(LIMPAR);
 
-	lerArquivo();
-
-	// Verificar a quantia
 	if (cont_produto < MAX_PRODUTO) {
 
 		bool verificar_codigo = false;
 
+		// Pedir o c√≥digo e verificar se j√° foi cadastrado
 		do {
-			// Verificar o cÛdigo
-			printf("Digite o cÛdigo: ");
+			printf("Digite o c√≥digo..............: ");
 			scanf("%lli", &produto[cont_produto].codigo);
 
 			for (int i = 0; i < cont_produto; i++) {
 				if (produto[cont_produto].codigo == produto[i].codigo) {
 					verificar_codigo = true;
 
-					printf(CODIGO_EXISTENTE);
-
 					break;
 				}
 			}
-			if(verificar_codigo == true) {
-				break;
-			}
+		} while (produto[cont_produto].codigo <= 0);
 
-			// Ler os dados do produto a ser adicionado
-			printf("Digite o grupo: ");
+		if (!verificar_codigo) {
+			// Pedir os outros dados do produto
+			printf("Digite o grupo...............: ");
 			getchar();
 			gets_s(produto[cont_produto].grupo);
 
-			printf("Digite a descriÁ„o: ");
+			printf("Digite a descri√ß√£o...........: ");
 			gets_s(produto[cont_produto].descricao);
 
-			printf("Digite a unidade: ");
+			printf("Digite a unidade.............: ");
 			gets_s(produto[cont_produto].unidade);
 
-			printf("Digite o fornecedor: ");
+			printf("Digite o fornecedor..........: ");
 			gets_s(produto[cont_produto].fornecedor);
 
-			printf("Digite a quantidade: ");
-			scanf("%i", &produto[cont_produto].quantidade);
+			do {
+				printf("Digite a quantidade..........: ");
+				scanf("%i", &produto[cont_produto].quantidade);
+			} while (produto[cont_produto].quantidade < 0);
 
-			printf("Digite o preÁo de compra: R$ ");
-			scanf("%f", &produto[cont_produto].pr_compra);
+			do {
+				printf("Digite o pre√ßo de compra.....: R$ ");
+				scanf("%f", &produto[cont_produto].pr_compra);
+			} while (produto[cont_produto].pr_compra < 0);
 
-			printf("Digite o preÁo de venda: R$ ");
-			scanf("%f", &produto[cont_produto].pr_venda);
+			do {
+				printf("Digite o pre√ßo de venda......: R$ ");
+				scanf("%f", &produto[cont_produto].pr_venda);
+			} while (produto[cont_produto].pr_venda < 0);
 
-			printf("Digite o lucro mÌnimo: R$ ");
-			scanf("%f", &produto[cont_produto].lucro);
+			produto[cont_produto].lucro = produto[cont_produto].pr_venda - produto[cont_produto].pr_compra;
 
-			printf("Digite a quantia mÌnima em estoque: ");
-			scanf("%i", &produto[cont_produto].estoque_min);
+			do {
+				printf("Digite a quantidade m√≠nima...: ");
+				scanf("%i", &produto[cont_produto].estoque_min);
+			} while (produto[cont_produto].estoque_min < 0);
 
-			// Cadastrar o produto no sistema
-			cont_produto++;
+			// Realizar confirma√ß√£o
+			char confirmar;
+			printf("\n");
+			do {
+				printf("Deseja cadastrar este produto no sistema? (S/N): ");
+				scanf(" %c", &confirmar);
+			} while (toupper(confirmar) != 'S' && toupper(confirmar) != 'N');
 
-			escreverArquivo(false, 0);
-
-			printf(CADASTRO_SUCESSO);
-
-		} while (verificar_codigo);
+			// Cadastrar no sistema
+			if (toupper(confirmar) == 'S') {
+				cont_produto++;
+				escreverArquivo();
+				printf(CADASTRO_SUCESSO);
+			}
+			else {
+				printf(CANCELADO_SUCESSO);
+			}
+		}
+		else {
+			printf(PRODUTO_EXISTENTE);
+		}
 	}
 	else {
 		printf(QUANTIA_MAXIMA);
@@ -164,40 +175,35 @@ void adicionarProduto() {
 void alterarDados() {
 	system(LIMPAR);
 	
-	lerArquivo();
-
-	// Ler o cÛdigo
 	if (cont_produto > 0) {
+		// Pedir o c√≥digo
 		long long int codigo_busca;
-		printf("Digite o cÛdigo do produto que deseja alterar algum dado: ");
+		printf("Digite o c√≥digo do produto que deseja alterar algum dado: ");
 		scanf("%lli", &codigo_busca);
 
-		bool produto_encontrado = false;
-
 		// Verificar
+		bool produto_encontrado = false;
 		for (int i = 0; i < cont_produto; i++) {
 			if (codigo_busca == produto[i].codigo) {
 				produto_encontrado = true;
 
 				system(LIMPAR);
 
-				// OpÁ„o de escolha do dado a ser alterado
+				// Op√ß√£o de escolha do dado a ser alterado
 				int opcao;
 				do {
-					printf("O cÛdigo do produto a ter os dados alterados È \033[32m%lli\x1B[0m e a sua descriÁ„o È \033[32m%s\x1B[0m!\n\n", produto[i].codigo, produto[i].descricao);
-
+					printf("O c√≥digo do produto a ter os dados alterados √© \033[32m%.13lli\x1B[0m e a sua descri√ß√£o √© \033[32m%s\x1B[0m!\n\n", produto[i].codigo, produto[i].descricao);
 					printf("<01>. Alterar o grupo\n");
-					printf("<02>. Alterar a descriÁ„o\n");
+					printf("<02>. Alterar a descri√ß√£o\n");
 					printf("<03>. Alterar a unidade\n");
 					printf("<04>. Alterar o fornecedor\n");
 					printf("<05>. Alterar a quantidade\n");
-					printf("<06>. Alterar o preÁo de compra\n");
-					printf("<07>. Alterar o preÁo de venda\n");
-					printf("<08>. Alterar o lucro mÌnimo.\n");
-					printf("<09>. Alterar o estoque mÌnimo.\n");
-					printf("<10>. Cancelar\n\n");
+					printf("<06>. Alterar o pre√ßo de compra\n");
+					printf("<07>. Alterar o pre√ßo de venda\n");
+					printf("<08>. Alterar o estoque m√≠nimo.\n");
+					printf("<09>. Cancelar\n\n");
 
-					printf("Escolha uma das opÁıes: ");
+					printf("Escolha uma das op√ß√µes: ");
 					scanf("%i", &opcao);
 
 					switch (opcao) {
@@ -207,7 +213,7 @@ void alterarDados() {
 						gets_s(produto[i].grupo);
 						break;
 					case 2:
-						printf("\nDigite a nova descriÁ„o: ");
+						printf("\nDigite a nova descri√ß√£o: ");
 						getchar();
 						gets_s(produto[i].descricao);
 						break;
@@ -222,38 +228,43 @@ void alterarDados() {
 						gets_s(produto[i].fornecedor);
 						break;
 					case 5:
-						printf("\nDigite a nova quantidade: ");
-						scanf("%i", &produto[i].quantidade);
+						do {
+							printf("\nDigite a nova quantidade: ");
+							scanf("%i", &produto[i].quantidade);
+						} while (produto[i].quantidade < 0);
 						break;
 					case 6:
-						printf("\nDigite o novo preÁo de compra: ");
-						scanf("%f", &produto[i].pr_compra);
+						do {
+							printf("\nDigite o novo pre√ßo de compra: ");
+							scanf("%f", &produto[i].pr_compra);
+						} while (produto[i].pr_compra < 0);
 						break;
 					case 7:
-						printf("\nDigite o novo preÁo de venda: ");
-						scanf("%f", &produto[i].pr_venda);
+						do {
+							printf("\nDigite o novo pre√ßo de venda: ");
+							scanf("%f", &produto[i].pr_venda);
+						} while (produto[i].pr_venda < 0);
 						break;
 					case 8:
-						printf("\nDigite o novo lucro mÌnimo: ");
-						scanf("%f", &produto[i].lucro);
+						do {
+							printf("\nDigite a nova quantidade m√≠nima: ");
+							scanf("%i", &produto[i].estoque_min);
+						} while (produto[i].estoque_min < 0);
 						break;
 					case 9:
-						printf("\nDigite o novo estoque mÌnimo: ");
-						scanf("%i", &produto[i].estoque_min);
-						break;
-					case 10:
 						printf(CANCELADO_SUCESSO);
 						break;
 					default:
 						system(LIMPAR);
 						printf(OPCAO_INVALIDA);
 					}
-				} while (opcao < 1 || opcao > 10);
+				} while (opcao < 1 || opcao > 9);
 
-				if (opcao != 10) {
-					escreverArquivo(false, 0);
+				if (opcao != 9) {
+					escreverArquivo();
 					printf(ALTERADO_SUCESSO);
 				}
+
 				break;
 			}
 		}
@@ -271,33 +282,49 @@ void alterarDados() {
 	system(LIMPAR);
 }
 
-// FunÁ„o para excluir produtos do sistema
+// Fun√ß√£o para excluir produtos do sistema
 void excluirProduto() {
 	system(LIMPAR);
 
-	lerArquivo();
-
 	if (cont_produto > 0) {
-		long long int deletar_codigo;
+		// Pedir o c√≥digo
+		long long int codigo_deletar;
+		printf("Digite o c√≥digo do produto a ser deletado: ");
+		scanf("%lli", &codigo_deletar);
+
+		// Realizar a verifica√ß√£o
 		bool produto_encontrado = false;
-
-		// Verificar o cÛdigo
-		printf("Digite o cÛdigo do produto a ser deletado: ");
-		scanf("%lli", &deletar_codigo);
-
 		for (int i = 0; i < cont_produto; i++) {
-			if (deletar_codigo == produto[i].codigo) {
+			if (codigo_deletar == produto[i].codigo) {
 				produto_encontrado = true;
 
-				escreverArquivo(true, produto[i].codigo);
+				// Confirmar se deseja deletar
+				printf("\nO c√≥digo do produto a ser deletado √© \033[32m%.13lli\x1B[0m e a descri√ß√£o √© \033[32m%s\x1B[0m!\n\n", produto[i].codigo, produto[i].descricao);
+				char confirmar;
+				do {
+					printf("Deseja deletar este produto? (S/N): ");
+					scanf(" %c", &confirmar);
+				} while (toupper(confirmar) != 'S' && toupper(confirmar) != 'N');
 
-				printf(DELETADO_SUCESSO);
+
+				// Deletar o produto
+				if (toupper(confirmar) == 'S') {
+					cont_produto--;
+					for (int j = i; j < cont_produto; j++) {
+						produto[j] = produto[j + 1];
+					}
+					escreverArquivo();
+
+					printf(DELETADO_SUCESSO);
+				}
+				else {
+					printf(CANCELADO_SUCESSO);
+				}
 
 				break;
 			}
 		}
 
-		// Deletar o produto do sistema se o cÛdigo existir
 		if (!produto_encontrado) {
 			printf(PRODUTO_NAO_ENCONTRADO);
 		}
@@ -311,34 +338,33 @@ void excluirProduto() {
 	system(LIMPAR);
 }
 
-// FunÁ„o para buscar o produto pelo codigo
+// Fun√ß√£o para buscar o produto pelo codigo
 void buscarProdutoCodigo() {
 	system(LIMPAR);
 
-	lerArquivo();	
-
 	if (cont_produto > 0) {
-		// Pedir o cÛdigo a ser buscado
+		// Pedir o c√≥digo a ser buscado
 		long long int codigo_busca;
-		printf("Digite o cÛdigo do produto a ser buscado: ");
+		printf("Digite o c√≥digo do produto a ser buscado: ");
 		scanf("%lli", &codigo_busca);
 
 		// Realizar a busca
 		bool produto_encontrado = false;
 		for (int i = 0; i < cont_produto; i++) {
 			if (codigo_busca == produto[i].codigo) {
-				printf("\nCÛdigo: %lli\n", produto[i].codigo);
-				printf("Grupo: %s\n", produto[i].grupo);
-				printf("DescriÁ„o: %s\n", produto[i].descricao);
-				printf("Unidade: %s\n", produto[i].unidade);
-				printf("Fornecedor: %s\n", produto[i].fornecedor);
-				printf("Quantidade: %i\n", produto[i].quantidade);
-				printf("PreÁo compra: R$ %.2f\n", produto[i].pr_compra);
-				printf("PreÁo venda: R$ %.2f\n", produto[i].pr_venda);
-				printf("Lucro mÌnimo: R$ %.2f\n", produto[i].lucro);
-				printf("Quantidade mÌnima em estoque: %i\n\n", produto[i].estoque_min);
-
 				produto_encontrado = true;
+
+				printf("\nC√≥digo..........: %.13lli\n", produto[i].codigo);
+				printf("Grupo...........: %s\n", produto[i].grupo);
+				printf("Descri√ß√£o.......: %s\n", produto[i].descricao);
+				printf("Unidade.. ......: %s\n", produto[i].unidade);
+				printf("Fornecedor......: %s\n", produto[i].fornecedor);
+				printf("Quantidade......: %i\n", produto[i].quantidade);
+				printf("Pre√ßo compra....: R$ %.2f\n", produto[i].pr_compra);
+				printf("Pre√ßo venda.....: R$ %.2f\n", produto[i].pr_venda);
+				printf("Lucro...........: R$ %.2f\n", produto[i].lucro);
+				printf("Quantidade m√≠n..: %i\n\n", produto[i].estoque_min);
+
 				break;
 			}
 		}
@@ -356,16 +382,15 @@ void buscarProdutoCodigo() {
 	system(LIMPAR);
 }
 
-// FunÁ„o para buscar o produto pela descriÁ„o
+// Fun√ß√£o para buscar o produto pela descri√ß√£o
 void buscarProdutoDescricao() {
 	system(LIMPAR);
 
-	lerArquivo();
-
 	if (cont_produto > 0) {
-		// Pedir a descriÁ„o a ser buscada
+
+		// Pedir a descri√ß√£o a ser buscada
 		char descricao_busca[50];
-		printf("Digite a descriÁ„o do produto a ser buscado: ");
+		printf("Digite a descri√ß√£o do produto a ser buscado: ");
 		getchar();
 		gets_s(descricao_busca);
 
@@ -373,24 +398,25 @@ void buscarProdutoDescricao() {
 		bool produto_encontrado = false;
 		for (int i = 0; i < cont_produto; i++) {
 			if (strstr(produto[i].descricao, descricao_busca)) {
-				printf("\nCÛdigo: %lli\n", produto[i].codigo);
-				printf("Grupo: %s\n", produto[i].grupo);
-				printf("DescriÁ„o: %s\n", produto[i].descricao);
-				printf("Unidade: %s\n", produto[i].unidade);
-				printf("Fornecedor: %s\n", produto[i].fornecedor);
-				printf("Quantidade: %i\n", produto[i].quantidade);
-				printf("PreÁo compra: R$ %.2f\n", produto[i].pr_compra);
-				printf("PreÁo venda: R$ %.2f\n", produto[i].pr_venda);
-				printf("Lucro mÌnimo: R$ %.2f\n", produto[i].lucro);
-				printf("Quantidade mÌnima em estoque: %i\n\n", produto[i].estoque_min);
-
 				produto_encontrado = true;
+
+				printf("\nC√≥digo..........: %.13lli\n", produto[i].codigo);
+				printf("Grupo...........: %s\n", produto[i].grupo);
+				printf("Descri√ß√£o.......: %s\n", produto[i].descricao);
+				printf("Unidade.. ......: %s\n", produto[i].unidade);
+				printf("Fornecedor......: %s\n", produto[i].fornecedor);
+				printf("Quantidade......: %i\n", produto[i].quantidade);
+				printf("Pre√ßo compra....: R$ %.2f\n", produto[i].pr_compra);
+				printf("Pre√ßo venda.....: R$ %.2f\n", produto[i].pr_venda);
+				printf("Lucro...........: R$ %.2f\n", produto[i].lucro);
+				printf("Quantidade m√≠n..: %i\n\n", produto[i].estoque_min);
 			}
 		}
 
 		if (!produto_encontrado) {
 			printf(PRODUTO_NAO_ENCONTRADO);
 		}
+
 	}
 	else {
 		printf(NENHUM_CADASTRO);
@@ -401,22 +427,47 @@ void buscarProdutoDescricao() {
 	system(LIMPAR);
 }
 
-// FunÁ„o para listar os produtos do sistema
+// Fun√ß√£o para listar os produtos do sistema
 void listarProdutos() {
 	system(LIMPAR);
 
-	lerArquivo();
-
-	// Exibir dados
 	if (cont_produto > 0) {
+		int produtos_por_pagina = 2;
+		int paginas_total = ceil((float)cont_produto / produtos_por_pagina);
+		int pagina_atual = 1;
+		char continuar;
+
 		for (int i = 0; i < cont_produto; i++) {
+			// Exibir dados
 			printf("=============================================================================================\n");
-			printf("CÛdigo: %-53.13lli Grupo: %s\n", produto[i].codigo, produto[i].grupo);
-			printf("DescriÁ„o: %-50s Unidade: %s\n", produto[i].descricao, produto[i].unidade);
+			printf("C√≥digo: %-53.13lli Grupo: %s\n", produto[i].codigo, produto[i].grupo);
+			printf("Descri√ß√£o: %-50s Unidade: %s\n", produto[i].descricao, produto[i].unidade);
 			printf("Fornecedor: %s\n", produto[i].fornecedor);
-			printf("PreÁo de compra: R$ %-10.2f PreÁo de venda: R$ %-11.2f Lucro mÌnimo: R$ %.2f\n", produto[i].pr_compra, produto[i].pr_venda, produto[i].lucro);
-			printf("Quantidade em estoque: %-38i Quantidade mÌnima: %i\n", produto[i].quantidade, produto[i].estoque_min);
+			printf("Pre√ßo de compra: R$ %-10.2f Pre√ßo de venda: R$ %-11.2f Lucro: R$ %.2f\n", produto[i].pr_compra, produto[i].pr_venda, produto[i].lucro);
+			printf("Quantidade em estoque: %-38i Quantidade m√≠nima: %i\n", produto[i].quantidade, produto[i].estoque_min);
 			printf("=============================================================================================\n\n");
+
+			// Fazer contagem das p√°ginas e perguntar se deseja continuar
+			if (i > 0 && (i + 1) % produtos_por_pagina == 0 || (i + 1) == cont_produto) {
+				printf("Exibindo p√°gina \033[32m<%i>\x1B[0m de \033[32m<%i>\x1B[0m. Total de produtos: \033[32m<%i>\x1B[0m!\n\n", pagina_atual, paginas_total, cont_produto);
+
+				if (pagina_atual < paginas_total) {
+					do {
+						printf("Deseja continuar? (S/N): ");
+						scanf(" %c", &continuar);
+					} while (toupper(continuar) != 'S' && toupper(continuar) != 'N');
+
+					if (toupper(continuar) == 'S') {
+						pagina_atual++;
+
+						system(LIMPAR);
+					}
+					else {
+						printf(CANCELADO_SUCESSO);
+						break;
+					}
+				}
+			}
 		}
 	}
 	else {
@@ -428,22 +479,50 @@ void listarProdutos() {
 	system(LIMPAR);
 }
 
-// FunÁ„o para listar os preÁos
+// Fun√ß√£o para listar os pre√ßos
 void listarPrecos() {
 	system(LIMPAR);
 
-	lerArquivo();
-
-	// Exibir dados
 	if (cont_produto > 0) {
-		printf("====================================================================================\n");
-		printf("CÛdigo               DescriÁ„o                                          PreÁo venda\n");
-		printf("====================================================================================\n");
+		int produtos_por_pagina = 15;
+		int paginas_total = ceil((float)cont_produto / produtos_por_pagina);
+		int pagina_atual = 1;
+		char continuar;
+
+		printf("=============================================================================================\n");
+		printf("C√≥digo               Descri√ß√£o                                          Pre√ßo venda\n");
+		printf("=============================================================================================\n");
 
 		for (int i = 0; i < cont_produto; i++) {
+			// Exibir dados
 			printf("%-20.13lli %-50s R$ %.2f\n", produto[i].codigo, produto[i].descricao, produto[i].pr_venda);
+
+			// Realizar a contagem de p√°ginas e perguntar se deseja continuar
+			if (i > 0 && (i + 1) % produtos_por_pagina == 0 || (i+1) == cont_produto) {
+				printf("\nExibindo p√°gina \033[32m<%i>\x1B[0m de \033[32m<%i>\x1B[0m. Total de produtos: \033[32m<%i>\x1B[0m!\n\n", pagina_atual, paginas_total, cont_produto);
+
+				if (pagina_atual < paginas_total) {
+					do {
+						printf("Deseja continuar? (S/N): ");
+						scanf(" %c", &continuar);
+					} while (toupper(continuar) != 'S' && toupper(continuar) != 'N');
+
+					if (toupper(continuar) == 'S') {
+						pagina_atual++;
+
+						system(LIMPAR);
+
+						printf("=============================================================================================\n");
+						printf("C√≥digo               Descri√ß√£o                                          Pre√ßo venda\n");
+						printf("=============================================================================================\n");
+					}
+					else {
+						printf(CANCELADO_SUCESSO);
+						break;
+					}
+				}
+			}
 		}
-		printf("\n");
 	}
 	else {
 		printf(NENHUM_CADASTRO);
@@ -454,75 +533,77 @@ void listarPrecos() {
 	system(LIMPAR);
 }
 
-// FunÁ„o para realizar aumento ou desconto de um grupo de produtos
+// Fun√ß√£o para realizar aumento ou desconto de um grupo de produtos
 void movimentacaoProdutos() {
 	system(LIMPAR);
 
-	lerArquivo();
-
 	if (cont_produto > 0) {
-		// Pedir o grupo e verificar se existe
+		// Pedir o grupo
 		char grupo_busca[50];
-
-		printf("Digite o grupo do produto: ");
+		printf("Digite o grupo do produto............: ");
 		getchar();
 		gets_s(grupo_busca);
 
+		// Verificar se o grupo existe 
 		bool grupo_encontrado = false;
 		for (int i = 0; i < cont_produto; i++) {
 			if (strcmp(grupo_busca, produto[i].grupo) == 0) {
 				grupo_encontrado = true;
+
+				break;
 			}
 		}
 
 		if (grupo_encontrado) {
 			// Perguntar o percentual
 			float percentual;
-			printf("\nDigite o percentual a ser alterado: ");
+			printf("\nDigite o percentual a ser alterado...: ");
 			scanf("%f", &percentual);
 
 			system(LIMPAR);
 
 			int opcao;
 			do {
-				// Escolher se ser· realizado desconto ou aumento
-				printf("O grupo a sofrer alteraÁ„o no preÁo ser· \033[32m%s\x1B[0m e o percentual ser· de \033[32m%.2f%%\x1B[0m\n\n", grupo_busca, percentual);
+				// Escolher se ser√° realizado desconto ou aumento
+				printf("O grupo a sofrer altera√ß√£o no pre√ßo ser√° \033[32m%s\x1B[0m e o percentual ser√° de \033[32m%.2f%%\x1B[0m\n\n", grupo_busca, percentual);
 				printf("<01>. Realizar desconto\n");
 				printf("<02>. Realizar aumento\n");
 				printf("<03>. Cancelar\n\n");
 
-				printf("Escolha uma das opÁıes: ");
+				printf("Escolha uma das op√ß√µes: ");
 				scanf("%i", &opcao);
 
 				switch (opcao) {
-					// Desconto
-					case 1:
-						for (int i = 0; i < cont_produto; i++) {
-							if (strcmp(grupo_busca, produto[i].grupo) == 0) {
-								produto[i].pr_venda -= (produto[i].pr_venda / 100) * percentual;
-							}
+				// Desconto
+				case 1:
+					for (int i = 0; i < cont_produto; i++) {
+						if (strcmp(grupo_busca, produto[i].grupo) == 0) {
+							produto[i].pr_venda -= (produto[i].pr_venda / 100) * percentual;
+							produto[i].lucro = produto[i].pr_venda - produto[i].pr_compra;
 						}
-						escreverArquivo(false, 0);
-						printf(ALTERADO_SUCESSO);
-						break;
-					// Aumento
-					case 2:
-						for (int i = 0; i < cont_produto; i++) {
-							if (strcmp(grupo_busca, produto[i].grupo) == 0) {
-								produto[i].pr_venda += (produto[i].pr_venda / 100) * percentual;
-							}
+					}
+					escreverArquivo();
+					printf(ALTERADO_SUCESSO);
+					break;
+				// Aumento
+				case 2:
+					for (int i = 0; i < cont_produto; i++) {
+						if (strcmp(grupo_busca, produto[i].grupo) == 0) {
+							produto[i].pr_venda += (produto[i].pr_venda / 100) * percentual;
+							produto[i].lucro = produto[i].pr_venda - produto[i].pr_compra;
 						}
-						escreverArquivo(false, 0);
-						printf(ALTERADO_SUCESSO);
-						break;
-					// Cancelar
-					case 3:
-						printf(CANCELADO_SUCESSO);
-						break;
-					default:
-						system(LIMPAR);
-						printf(OPCAO_INVALIDA);
-						break;
+					}
+					escreverArquivo();
+					printf(ALTERADO_SUCESSO);
+					break;
+				// Cancelar
+				case 3:
+					printf(CANCELADO_SUCESSO);
+					break;
+				default:
+					system(LIMPAR);
+					printf(OPCAO_INVALIDA);
+					break;
 				}
 			} while (opcao < 1 || opcao > 3);
 		}
@@ -540,19 +621,18 @@ void movimentacaoProdutos() {
 	system(LIMPAR);
 }
 
-// FunÁ„o para listar os produtos de um fornecedor
+// Fun√ß√£o para listar os produtos de um fornecedor
 void produtosFornecedores() {
 	system(LIMPAR);
 	
-	lerArquivo();
-
 	if (cont_produto > 0) {
-		// Pedir o fornecedor e realizar busca
+		// Pedir o fornecedor
 		char fornecedor_busca[50];
 		printf("Digite o fornecedor: ");
 		getchar();
 		gets_s(fornecedor_busca);
 
+		// Verificar se existe
 		bool fornecedor_encontrado = false;
 		for (int i = 0; i < cont_produto; i++) {
 			if (strcmp(fornecedor_busca, produto[i].fornecedor) == 0) {
@@ -562,7 +642,7 @@ void produtosFornecedores() {
 
 		// Exibir os produtos
 		if (fornecedor_encontrado) {
-			printf("\nCÛdigo               DescriÁ„o\n");
+			printf("\nC√≥digo               Descri√ß√£o\n");
 			printf("====================================================================================\n");;
 			for (int i = 0; i < cont_produto; i++) {
 				if (strcmp(fornecedor_busca, produto[i].fornecedor) == 0) {
@@ -584,65 +664,67 @@ void produtosFornecedores() {
 	system(LIMPAR);
 }
 
-// FunÁ„o principal
+// Fun√ß√£o principal
 int main() {
 	setlocale(LC_ALL, "portuguese");
 
+	lerArquivo();
+
 	int opcao;
 
-	// Menu de opÁıes
+	// Menu de op√ß√µes
 	do {
 		printf("================ Sistema de Estoque ================\n");
 		printf("<01>. Adicionar produto.\n");
 		printf("<02>. Alterar dados de um produto.\n");
 		printf("<03>. Excluir produto.\n");
-		printf("<04>. Procurar por um produto pelo cÛdigo.\n");
-		printf("<05>. Procurar por um produto pela descriÁ„o.\n");
+		printf("<04>. Procurar por um produto pelo c√≥digo.\n");
+		printf("<05>. Procurar por um produto pela descri√ß√£o.\n");
 		printf("<06>. Listar todos os produtos.\n");
-		printf("<07>. Listar preÁos\n");
+		printf("<07>. Listar pre√ßos\n");
 		printf("<08>. Realizar aumento ou desconto de um grupo.\n");
 		printf("<09>. Produtos fornecidos por fornecedores\n");
 		printf("<10>. Sair do programa.\n");
 		printf("====================================================\n");
 
-		printf("\nEscolha uma opÁ„o: ");
+		printf("\nEscolha uma op√ß√£o: ");
 		scanf("%i", &opcao);
 
 		switch (opcao) {
-			case 1:
-				adicionarProduto();
-				break;
-			case 2:
-				alterarDados();
-				break;
-			case 3:
-				excluirProduto();
-				break;
-			case 4:
-				buscarProdutoCodigo();
-				break;
-			case 5:
-				buscarProdutoDescricao();
-				break;
-			case 6:
-				listarProdutos();
-				break;
-			case 7:
-				listarPrecos();
-				break;
-			case 8:
-				movimentacaoProdutos();
-				break;
-			case 9:
-				produtosFornecedores();
-				break;
-			case 10:
-				exit(0);
-				break;
-			default:
-				system(LIMPAR);
-				printf(OPCAO_INVALIDA);
-				break;
+		case 1:
+			adicionarProduto();
+			break;
+		case 2:
+			alterarDados();
+			break;
+		case 3:
+			excluirProduto();
+			break;
+		case 4:
+			buscarProdutoCodigo();
+			break;
+		case 5:
+			buscarProdutoDescricao();
+			break;
+		case 6:
+			listarProdutos();
+			break;
+		case 7:
+			listarPrecos();
+			break;
+		case 8:
+			movimentacaoProdutos();
+			break;
+		case 9:
+			produtosFornecedores();
+			break;
+		case 10:
+			exit(0);
+			break;
+		default:
+			system(LIMPAR);
+			printf(OPCAO_INVALIDA);
+			break;
 		}
 	} while (opcao != 10);
 
