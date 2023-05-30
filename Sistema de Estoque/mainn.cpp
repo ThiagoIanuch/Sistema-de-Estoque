@@ -147,6 +147,7 @@ void adicionarProduto() {
 			// Realizar confirmação
 			char confirmar;
 			printf("\n");
+
 			do {
 				printf("Deseja cadastrar este produto no sistema? (S/N): ");
 				scanf(" %c", &confirmar);
