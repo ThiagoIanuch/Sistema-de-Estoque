@@ -6,7 +6,7 @@
 #include <math.h>
 
 // Definções de mensagens e outros
-#define MAX_PRODUTO 50
+#define SAIR_PROGRAMA "\n\033[31mPrograma encerrado com sucesso!\x1B[0m\n"
 #define OPCAO_INVALIDA "\033[31mOpção inválida. Escolha novamente!\x1B[0m\n\n"
 #define NENHUM_CADASTRO "\033[31mNenhum produto foi cadastrado no sistema!\x1B[0m\n\n"
 #define QUANTIA_MAXIMA "\033[31mNão é possível adicionar mais produtos, a quantia máxima já foi cadastrada!\x1B[0m\n\n"
@@ -22,6 +22,9 @@
 #define LIMPAR "cls"
 
 // Estrutura do produto e variáveis globais
+const int MAX_PRODUTO = 50;
+int cont_produto;
+
 typedef struct TProduto {
 	long long int codigo;
 	char grupo[50];
@@ -36,7 +39,7 @@ typedef struct TProduto {
 }TProduto;
 
 TProduto produto[MAX_PRODUTO];
-int cont_produto;
+
 FILE* arquivo;
 
 // Função para ler os dados do arquivo
@@ -191,8 +194,22 @@ void alterarDados() {
 
 				// Opção de escolha do dado a ser alterado
 				int opcao;
+
 				do {
-					printf("O código do produto a ter os dados alterados é \033[32m%.13lli\x1B[0m e a sua descrição é \033[32m%s\x1B[0m!\n\n", produto[i].codigo, produto[i].descricao);
+					printf("O código do produto a ter os dados alterados é \033[32m%.13lli\x1B[0m!\n\n", produto[i].codigo, produto[i].descricao);
+
+					// Exibir os dados do produto
+					printf("Grupo...........: %s\n", produto[i].grupo);
+					printf("Descrição.......: %s\n", produto[i].descricao);
+					printf("Unidade.. ......: %s\n", produto[i].unidade);
+					printf("Fornecedor......: %s\n", produto[i].fornecedor);
+					printf("Quantidade......: %i\n", produto[i].quantidade);
+					printf("Preço compra....: R$ %.2f\n", produto[i].pr_compra);
+					printf("Preço venda.....: R$ %.2f\n", produto[i].pr_venda);
+					printf("Lucro...........: R$ %.2f\n", produto[i].lucro);
+					printf("Quantidade mín..: %i\n\n", produto[i].estoque_min);
+
+					// Listar as opções
 					printf("<01>. Alterar o grupo\n");
 					printf("<02>. Alterar a descrição\n");
 					printf("<03>. Alterar a unidade\n");
@@ -203,6 +220,7 @@ void alterarDados() {
 					printf("<08>. Alterar o estoque mínimo.\n");
 					printf("<09>. Cancelar\n\n");
 
+					// Pedir a opção
 					printf("Escolha uma das opções: ");
 					scanf("%i", &opcao);
 
@@ -396,9 +414,11 @@ void buscarProdutoDescricao() {
 
 		// Realizar a busca
 		bool produto_encontrado = false;
+		int cont_encontrados = 0;
 		for (int i = 0; i < cont_produto; i++) {
 			if (strstr(produto[i].descricao, descricao_busca)) {
 				produto_encontrado = true;
+				cont_encontrados++;
 
 				printf("\nCódigo..........: %.13lli\n", produto[i].codigo);
 				printf("Grupo...........: %s\n", produto[i].grupo);
@@ -413,7 +433,11 @@ void buscarProdutoDescricao() {
 			}
 		}
 
-		if (!produto_encontrado) {
+		// Exibir o total encontrado
+		if (produto_encontrado) {
+			printf("Total de produtos encontrados: \033[32m%i\x1B[0m!\n\n", cont_encontrados);
+		}
+		else {
 			printf(PRODUTO_NAO_ENCONTRADO);
 		}
 
@@ -438,7 +462,7 @@ void listarProdutos() {
 		char continuar;
 
 		for (int i = 0; i < cont_produto; i++) {
-			// Exibir dados
+			// Informações do produto
 			printf("=============================================================================================\n");
 			printf("Código: %-53.13lli Grupo: %s\n", produto[i].codigo, produto[i].grupo);
 			printf("Descrição: %-50s Unidade: %s\n", produto[i].descricao, produto[i].unidade);
@@ -447,10 +471,11 @@ void listarProdutos() {
 			printf("Quantidade em estoque: %-38i Quantidade mínima: %i\n", produto[i].quantidade, produto[i].estoque_min);
 			printf("=============================================================================================\n\n");
 
-			// Fazer contagem das páginas e perguntar se deseja continuar
-			if (i > 0 && (i + 1) % produtos_por_pagina == 0 || (i + 1) == cont_produto) {
+			if ((i + 1) % produtos_por_pagina == 0 || (i + 1) == cont_produto) {
+				// Exibir a contagem de páginas e produtos
 				printf("Exibindo página \033[32m<%i>\x1B[0m de \033[32m<%i>\x1B[0m. Total de produtos: \033[32m<%i>\x1B[0m!\n\n", pagina_atual, paginas_total, cont_produto);
 
+				// Perguntar se deseja continuar
 				if (pagina_atual < paginas_total) {
 					do {
 						printf("Deseja continuar? (S/N): ");
@@ -459,7 +484,6 @@ void listarProdutos() {
 
 					if (toupper(continuar) == 'S') {
 						pagina_atual++;
-
 						system(LIMPAR);
 					}
 					else {
@@ -484,23 +508,69 @@ void listarPrecos() {
 	system(LIMPAR);
 
 	if (cont_produto > 0) {
+		int opcao = 1;
+
+		do {
+			if (opcao < 1 || opcao > 3) {
+				system(LIMPAR);
+				printf(OPCAO_INVALIDA);
+			}
+			printf("<1>. Listar os preços em ordem crescente\n");
+			printf("<2>. Listar os preços em ordem decrescente\n");
+			printf("<3>. Retornar ao menu principal\n\n");
+
+			printf("Escolha uma das opções: ");
+			scanf("%i", &opcao);
+		} while (opcao < 1 || opcao > 3);
+
+		// Retornar ao menu se a opção for 3
+		if (opcao == 3) {
+			system(LIMPAR);
+			return;
+		}
+			
+		system(LIMPAR);
+
 		int produtos_por_pagina = 15;
 		int paginas_total = ceil((float)cont_produto / produtos_por_pagina);
 		int pagina_atual = 1;
 		char continuar;
+		TProduto aux;
 
 		printf("=============================================================================================\n");
 		printf("Código               Descrição                                          Preço venda\n");
 		printf("=============================================================================================\n");
 
 		for (int i = 0; i < cont_produto; i++) {
-			// Exibir dados
+			// Organizar pelo preço em ordem crescente
+			if (opcao == 1) {
+				for (int j = i + 1; j < cont_produto; j++) {
+					if (produto[i].pr_venda > produto[j].pr_venda) {
+						aux = produto[i];
+						produto[i] = produto[j];
+						produto[j] = aux;
+					}
+				}
+			}
+			// Organizar pelo preço em ordem decrescente
+			else {
+				for (int j = i + 1; j < cont_produto; j++) {
+					if (produto[i].pr_venda < produto[j].pr_venda) {
+						aux = produto[i];
+						produto[i] = produto[j];
+						produto[j] = aux;
+					}
+				}
+			}
+
+			// Exibir preços
 			printf("%-20.13lli %-50s R$ %.2f\n", produto[i].codigo, produto[i].descricao, produto[i].pr_venda);
 
-			// Realizar a contagem de páginas e perguntar se deseja continuar
-			if (i > 0 && (i + 1) % produtos_por_pagina == 0 || (i+1) == cont_produto) {
+			// Exibir a contagem de páginas e produtos
+			if ((i + 1) % produtos_por_pagina == 0 || (i + 1) == cont_produto) {
 				printf("\nExibindo página \033[32m<%i>\x1B[0m de \033[32m<%i>\x1B[0m. Total de produtos: \033[32m<%i>\x1B[0m!\n\n", pagina_atual, paginas_total, cont_produto);
 
+				// Perguntar se deseja continuar
 				if (pagina_atual < paginas_total) {
 					do {
 						printf("Deseja continuar? (S/N): ");
@@ -520,6 +590,17 @@ void listarPrecos() {
 						printf(CANCELADO_SUCESSO);
 						break;
 					}
+				}
+			}
+		}
+
+		// Reorganizar pelo código
+		for (int i = 0; i < cont_produto; i++) {
+			for (int j = i + 1; j < cont_produto; j++) {
+				if (produto[i].codigo > produto[j].codigo) {
+					aux = produto[i];
+					produto[i] = produto[j];
+					produto[j] = aux;
 				}
 			}
 		}
@@ -637,19 +718,24 @@ void produtosFornecedores() {
 		for (int i = 0; i < cont_produto; i++) {
 			if (strcmp(fornecedor_busca, produto[i].fornecedor) == 0) {
 				fornecedor_encontrado = true;
+				break;
 			}
 		}
 
 		// Exibir os produtos
 		if (fornecedor_encontrado) {
+			int cont_encontrados = 0;
 			printf("\nCódigo               Descrição\n");
 			printf("====================================================================================\n");;
 			for (int i = 0; i < cont_produto; i++) {
 				if (strcmp(fornecedor_busca, produto[i].fornecedor) == 0) {
+					cont_encontrados++;
 					printf("%-20.13lli %s\n", produto[i].codigo, produto[i].descricao);
 				}
 			}
-			printf("\n");
+
+			// Exibir o total encontrado
+			printf("\nTotal de produtos encontrados: \033[32m%i\x1B[0m!\n\n", cont_encontrados);
 		}
 		else {
 			printf(FORNECEDOR_NAO_ENCONTRADO);
@@ -719,6 +805,7 @@ int main() {
 			produtosFornecedores();
 			break;
 		case 10:
+			printf(SAIR_PROGRAMA);
 			exit(0);
 			break;
 		default:
