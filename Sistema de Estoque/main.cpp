@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h> // Permitir o uso de system() e exit()
-#include <string.h> // Permitir o uso de strcmp() e strstr()
+#include <string.h> // Permitir o uso de strcasecmp() e strstr()
 #include <math.h> // Permitir o uso de ceil()
 #include <ctype.h> // Permitir o uso de tolower() e toupper()
 #include <conio.h> // Permitir o uso de _getch()
@@ -28,6 +28,9 @@
 
 // Variáveis globais e estrutura do produto
 const int MAX_PRODUTO = 50;
+int cont_produto;
+int percentual_venda = 50;
+FILE* arquivo;
 
 typedef struct TProduto {
 	long int codigo;
@@ -43,9 +46,6 @@ typedef struct TProduto {
 }TProduto;
 
 TProduto produto[MAX_PRODUTO];
-int cont_produto;
-int percentual_venda = 50;
-FILE* arquivo;
 
 // Função para ler os dados do arquivo
 void lerArquivo() {
@@ -93,6 +93,101 @@ void escreverArquivo() {
 	}
 }
 
+// Função para realizar a paginação
+void paginacao(int produtos_por_pagina, int* pagina_atual, int paginas_total, int total_produtos, int* indice, int* sair, int linhas_adicionais) {
+
+	int tecla;
+
+	if ((*indice + 1) % produtos_por_pagina == 0 || (*indice + 1) == total_produtos) {
+
+		// Espaçamento automático antes do menu
+		if ((*indice + 1) % produtos_por_pagina > 0) {
+			int produtos_restantes;
+
+			produtos_restantes = produtos_por_pagina - (*indice + 1) % produtos_por_pagina;
+
+			for (int i = 0; i < produtos_restantes; i++) {
+				for (int i = 0; i < linhas_adicionais; i++) {
+					printf("\n");
+				}
+			}
+		}
+
+		// Exibir a contagem
+		printf("Exibindo página <%i> de <%i>. Total de produtos: <%i>!\n\n", *pagina_atual, paginas_total, total_produtos);
+
+		// Menu de navegação
+		if (*pagina_atual == 1 && *pagina_atual < paginas_total) {
+			printf("                                        Menu principal                                 Avançar\n");
+			printf("                                              ESC                                         ->  \n");
+		}
+		else if (*pagina_atual > 1 && *pagina_atual < paginas_total) {
+			printf("Retornar                                Menu principal                                 Avançar\n");
+			printf("   <-                                         ESC                                         ->  \n");
+		}
+		else if (*pagina_atual > 1 && *pagina_atual == paginas_total) {
+			printf("Retornar                                Menu principal                                        \n");
+			printf("   <-                                         ESC                                             \n");
+		}
+		else {
+			printf("                                        Menu principal                                        \n");
+			printf("                                              ESC                                             \n");
+		}
+
+		// Desativa o cursor
+		printf("\33[?25l");
+
+		// Pegar a tecla pressionada pelo usuário
+		do {
+			tecla = _getch();
+			if (tecla == SETAS) {
+				tecla = _getch();
+			}
+
+		} while (tecla != SETA_ESQUERDA && tecla != SETA_DIREITA && tecla != ESC);
+
+		// Retornar página
+		if (tecla == SETA_ESQUERDA) {
+			if (*pagina_atual > 1) {
+				(*pagina_atual)--;
+
+				if ((*indice + 1) % produtos_por_pagina == 0) {
+					*indice -= produtos_por_pagina * 2;
+				}
+				else {
+					*indice -= produtos_por_pagina + (total_produtos % produtos_por_pagina);
+				}
+			}
+			else {
+				*indice = -1;
+			}
+		}
+		// Avançar página
+		else if (tecla == SETA_DIREITA) {
+			if (*pagina_atual < paginas_total) {
+				(*pagina_atual)++;
+			}
+			else {
+				if (total_produtos % produtos_por_pagina == 0) {
+					*indice -= produtos_por_pagina;
+				}
+				else {
+					*indice -= total_produtos % produtos_por_pagina;
+				}
+			}
+		}
+		// Sair
+		else {
+			// Reativa o cursor
+			printf("\33[?25h");
+
+			*sair = 1;
+		}
+
+		system(LIMPAR);
+	}
+}
+
 // Função para apresentar o produto em formato de ficha
 void fichaProduto(int indice) {
 	printf("==============================================================================================\n");
@@ -119,90 +214,16 @@ void fichaProduto(int indice) {
 	printf("==============================================================================================\n\n");
 }
 
-// Função para realizar a paginação
-void paginacao(int produtos_por_pagina, int* pagina_atual, int paginas_total, int* indice, int* sair) {
-
-	int tecla;
-
-	if ((*indice + 1) % produtos_por_pagina == 0 || (*indice + 1) == cont_produto) {
-		// Exibir a contagem
-		printf("Exibindo página <%i> de <%i>. Total de produtos: <%i>!\n\n", *pagina_atual, paginas_total, cont_produto);
-
-		// Menu de navegação
-		if (*pagina_atual == 1 && *pagina_atual < paginas_total) {
-			printf("Avançar ->                      ESC retornar ao menu principal                                \n");
-		}
-		else if (*pagina_atual > 1 && *pagina_atual < paginas_total) {
-			printf("Avançar ->                      ESC retornar ao menu principal                       <- Voltar\n");
-		}
-		else {
-			printf("                                ESC retornar ao menu principal                       <- Voltar\n");
-		}
-		
-		// Desativa o cursor
-		printf("\33[?25l");
-
-		// Pegar a tecla pressionada pelo usuário
-		do {
-			tecla = _getch();
-			if (tecla == SETAS) {
-				tecla = _getch();
-			}
-
-		} while (tecla != SETA_ESQUERDA && tecla != SETA_DIREITA && tecla != ESC);
-
-		// Avançar página
-		if (tecla == SETA_ESQUERDA) {
-			if (*pagina_atual > 1) {
-				(*pagina_atual)--;
-
-				if ((*indice + 1) % produtos_por_pagina == 0) {
-					*indice -= produtos_por_pagina * 2;
-				}
-				else {
-					*indice -= produtos_por_pagina + (cont_produto % produtos_por_pagina);
-				}
-			}
-			else {
-				*indice = -1;
-			}
-		}
-		// Retornar página
-		else if (tecla == SETA_DIREITA) {
-			if (*pagina_atual < paginas_total) {
-				(*pagina_atual)++;
-			}
-			else {
-				if (cont_produto % produtos_por_pagina == 0) {
-					*indice -= produtos_por_pagina;
-				}
-				else {
-					*indice -= cont_produto % produtos_por_pagina;
-				}
-			}
-		}
-		// Sair
-		else {
-			// Reativa o cursor
-			printf("\33[?25h");
-
-			*sair = 1;
-		}
-
-		system(LIMPAR);
-	}
-}
-
 // Função para adicionar os produtos no sistema
 void adicionarProduto() {
 	system(LIMPAR);
+
+	printf("========================================= Adicionar ==========================================\n\n");
 
 	if (cont_produto < MAX_PRODUTO) {
 
 		TProduto aux;
 		bool verificar_codigo = true;
-
-		printf("========================================= Adicionar ==========================================\n\n");
 
 		// Pedir o código e verificar se já foi cadastrado
 		do {
@@ -229,7 +250,7 @@ void adicionarProduto() {
 			printf("[2]. Doces\n");
 			printf("[3]. Salgadinhos\n");
 			printf("[4]. Conveniências\n\n");
-			
+
 			do {
 				printf("Digite o grupo.................................: ");
 				scanf("%i", &aux.grupo);
@@ -348,9 +369,9 @@ void adicionarProduto() {
 void alterarDados() {
 	system(LIMPAR);
 
-	if (cont_produto > 0) {
-		printf("========================================== Alterar ===========================================\n\n");
+	printf("========================================== Alterar ===========================================\n\n");
 
+	if (cont_produto > 0) {
 		// Pedir o código
 		long int codigo_busca;
 		do {
@@ -360,6 +381,7 @@ void alterarDados() {
 
 		// Procurar pelo código
 		bool produto_encontrado = false;
+
 		for (int i = 0; i < cont_produto; i++) {
 			if (codigo_busca == produto[i].codigo) {
 
@@ -467,7 +489,7 @@ void alterarDados() {
 							}
 						} while (aux.pr_compra < 0);
 
-						aux.pr_venda = aux.pr_compra + (aux.pr_compra / 100) * percentual_venda;
+						aux.pr_venda = aux.pr_compra + (aux.pr_compra / 100) * aux.lucro;
 
 						aux.lucro = ((aux.pr_venda - aux.pr_compra) * 100) / aux.pr_compra;
 						break;
@@ -480,9 +502,10 @@ void alterarDados() {
 							if (aux.estoque_min <= 0) {
 								printf("\nA quantidade mínima não pode ser menor ou igual a 0.\n\n");
 							}
-						} while (aux.estoque_min < 0);
+						} while (aux.estoque_min <= 0);
 						break;
 					case 0:
+						system(LIMPAR);
 						return;
 						break;
 					default:
@@ -531,9 +554,9 @@ void alterarDados() {
 void excluirProduto() {
 	system(LIMPAR);
 
-	if (cont_produto > 0) {
-		printf("========================================== Excluir ===========================================\n\n");
+	printf("========================================== Excluir ===========================================\n\n");
 
+	if (cont_produto > 0) {
 		// Pedir o código a ser excluído
 		long int codigo_excluir;
 		do {
@@ -547,6 +570,7 @@ void excluirProduto() {
 
 		// Procurar pelo produto
 		bool produto_encontrado = false;
+
 		for (int i = 0; i < cont_produto; i++) {
 			if (codigo_excluir == produto[i].codigo) {
 				produto_encontrado = true;
@@ -615,6 +639,7 @@ void buscarProdutoCodigo() {
 
 	// Realizar a busca
 	bool produto_encontrado = false;
+
 	for (int i = 0; i < cont_produto; i++) {
 		if (codigo_busca == produto[i].codigo) {
 			produto_encontrado = true;
@@ -643,28 +668,58 @@ void buscarProdutoDescricao() {
 	printf("=========================================== Buscar ===========================================\n\n");
 
 	// Pedir a descrição a ser buscada
-	char descricao_busca[50];
-	printf("Digite a descrição do produto a ser buscado: ");
-	getchar();
-	gets_s(descricao_busca);
+	char descricao_busca[41];
 
-	printf("\n");
+	do {
+		printf("Digite a descrição do produto a ser buscado: ");
+		getchar();
+		gets_s(descricao_busca);
+
+		if (strlen(descricao_busca) == 0) {
+			printf("\nA descrição não pode ser vazia.\n\n");
+		}
+	} while (strlen(descricao_busca) == 0);
 
 	// Realizar a busca
-	bool produto_encontrado = false;
+	int produtos_encontrados[MAX_PRODUTO];
 	int cont_encontrados = 0;
+
 	for (int i = 0; i < cont_produto; i++) {
 		if (strstr(produto[i].descricao, descricao_busca)) {
-			fichaProduto(i);
-
-			produto_encontrado = true;
+			produtos_encontrados[cont_encontrados] = i;
 			cont_encontrados++;
 		}
 	}
 
-	// Exibir o total encontrado
-	if (produto_encontrado) {
-		printf("Total de produtos encontrados: \033[32m%i\x1B[0m!\n\n", cont_encontrados);
+	// Mostrar produtos encontrados
+	if (cont_encontrados > 0) {
+		system(LIMPAR);
+
+		int produtos_por_pagina = 2;
+		int pagina_atual = 1;
+		int paginas_total = ceil((float)cont_encontrados / produtos_por_pagina);
+		int sair = 0;
+		int linhas_adicionais = 8;
+
+		for (int i = 0; i < cont_encontrados; i++) {
+			if (i % produtos_por_pagina == 0) {
+				printf("=========================================== Buscar ===========================================\n\n");
+
+				printf("Digite a descrição do produto a ser buscado: %s\n\n", descricao_busca);
+			}
+
+			// Exibe os produtos
+			fichaProduto(produtos_encontrados[i]);
+
+			// Paginação
+			if (paginas_total > 1) {
+				paginacao(produtos_por_pagina, &pagina_atual, paginas_total, cont_encontrados, &i, &sair, linhas_adicionais);
+			}
+
+			if (sair > 0) {
+				return;
+			}
+		}
 	}
 	else {
 		printf(PRODUTO_NAO_ENCONTRADO);
@@ -712,6 +767,8 @@ void menuBusca() {
 		} while (opcao < 0 || opcao > 2);
 	}
 	else {
+		printf("=========================================== Buscar ===========================================\n\n");
+
 		printf(NENHUM_CADASTRO);
 
 		system(PAUSAR);
@@ -728,6 +785,7 @@ void listarProdutos() {
 	int pagina_atual = 1;
 	int paginas_total = ceil((float)cont_produto / produtos_por_pagina);
 	int sair = 0;
+	int linhas_adicionais = 8;
 
 	for (int i = 0; i < cont_produto; i++) {
 		if (i % produtos_por_pagina == 0) {
@@ -739,7 +797,7 @@ void listarProdutos() {
 		fichaProduto(i);
 
 		// Realizar contagem de páginas e produtos
-		paginacao(produtos_por_pagina, &pagina_atual, paginas_total, &i, &sair);
+		paginacao(produtos_por_pagina, &pagina_atual, paginas_total, cont_produto, &i, &sair, linhas_adicionais);
 
 		if (sair == 1) {
 			return;
@@ -760,6 +818,7 @@ void listarPrecos() {
 	int pagina_atual = 1;
 	int paginas_total = ceil((float)cont_produto / produtos_por_pagina);
 	int sair = 0;
+	int linhas_adicionais = 1;
 
 	// Organiza pelo preço
 	for (int i = 0; i < cont_produto; i++) {
@@ -788,7 +847,7 @@ void listarPrecos() {
 		if ((i + 1) % produtos_por_pagina == 0 || (i + 1) == cont_produto) {
 			printf("\n");
 		}
-		paginacao(produtos_por_pagina, &pagina_atual, paginas_total, &i, &sair);
+		paginacao(produtos_por_pagina, &pagina_atual, paginas_total, cont_produto, &i, &sair, linhas_adicionais);
 
 		if (sair == 1) {
 			// Reorganiza pelo código
@@ -848,6 +907,8 @@ void menuListar() {
 		} while (opcao < 0 || opcao > 2);
 	}
 	else {
+		printf("========================================= Relatórios =========================================\n\n");
+
 		printf(NENHUM_CADASTRO);
 
 		system(PAUSAR);
@@ -863,73 +924,70 @@ void listarProdutosFornecedor() {
 	printf("================================= Listar produtos fornecedor =================================\n\n");
 
 	// Pedir o nome do fornecedor
-	char fornecedor_busca[41];
-	printf("Digite o nome do fornecedor: ");
-	getchar();
-	gets_s(fornecedor_busca);
+	if (cont_produto > 0) {
+		char fornecedor_busca[41];
 
-	// Verificar se existe ao menos um produto com o nome deste fornecedor
-	int total_produtos = 0;
-	for (int i = 0; i < cont_produto; i++) {
-		if (strcmp(fornecedor_busca, produto[i].fornecedor) == 0) {
-			total_produtos++;
-		}
-	}
+		do {
+			printf("Digite o nome do fornecedor: ");
+			getchar();
+			gets_s(fornecedor_busca);
 
-	// Listar os produtos
-	if (total_produtos > 0) {
-		system(LIMPAR);
+			if (strlen(fornecedor_busca) == 0) {
+				printf("\nO nome do fornecedor não pode ser vazio.\n\n");
+			}
+		} while (strlen(fornecedor_busca) == 0);
 
-		int cont = 0;
-		int produtos_por_pagina = 15;
-		int pagina_atual = 1;
-		int paginas_total = ceil((float)total_produtos / produtos_por_pagina);
-		char continuar;
+		// Realizar a busca
+		int produtos_encontrados[MAX_PRODUTO];
+		int cont_encontrados = 0;
 
-		printf("================================= Listar produtos fornecedor =================================\n\n");
-
-		printf("==============================================================================================\n");
-		printf("Código               Descrição                                 Fornecedor\n");
-		printf("==============================================================================================\n");
 		for (int i = 0; i < cont_produto; i++) {
-			if (strcmp(fornecedor_busca, produto[i].fornecedor) == 0) {
-				cont++;
+			if (strstr(produto[i].fornecedor, fornecedor_busca)) {
+				produtos_encontrados[cont_encontrados] = i;
+				cont_encontrados++;
+			}
+		}
 
-				printf("%-20.13li %-41s %s\n", produto[i].codigo, produto[i].descricao, produto[i].fornecedor);
+		// Listar os produtos
+		if (cont_encontrados > 0) {
+			system(LIMPAR);
 
-				// Exibir a contagem de páginas e produtos
-				if (cont % produtos_por_pagina == 0 || cont == total_produtos) {
-					printf("\nExibindo página \033[32m<%i>\x1B[0m de \033[32m<%i>\x1B[0m. Total de produtos: \033[32m<%i>\x1B[0m!\n\n", pagina_atual, paginas_total, total_produtos);
+			int produtos_por_pagina = 15;
+			int pagina_atual = 1;
+			int paginas_total = ceil((float)cont_encontrados / produtos_por_pagina);
+			int sair = 0;
+			int linhas_adicionais = 1;
 
-					// Perguntar se deseja continuar
-					if (pagina_atual < paginas_total) {
-						do {
-							printf("Deseja continuar? (S/N): ");
-							scanf(" %c", &continuar);
-						} while (toupper(continuar) != 'S' && toupper(continuar) != 'N');
+			for (int i = 0; i < cont_encontrados; i++) {
+				if (i % produtos_por_pagina == 0) {
+					printf("================================= Listar produtos fornecedor =================================\n\n");
 
-						if (toupper(continuar) == 'S') {
-							pagina_atual++;
+					printf("==============================================================================================\n");
+					printf("Código               Descrição                                 Fornecedor\n");
+					printf("==============================================================================================\n");
+				}
 
-							system(LIMPAR);
+				// Exibe os produtos
+				printf("%-20li %-41s %s\n", produto[produtos_encontrados[i]].codigo, produto[produtos_encontrados[i]].descricao, produto[produtos_encontrados[i]].fornecedor);
 
-							printf("================================= Listar produtos fornecedor =================================\n\n");
+				// Paginação
+				if ((i + 1) % produtos_por_pagina == 0 || (i + 1) == cont_encontrados) {
+					printf("\n");
+				}
 
-							printf("==============================================================================================\n");
-							printf("Código               Descrição                                 Fornecedor\n");
-							printf("==============================================================================================\n");
-						}
-						else {
-							printf(CANCELADO_SUCESSO);
-							break;
-						}
-					}
+				paginacao(produtos_por_pagina, &pagina_atual, paginas_total, cont_encontrados, &i, &sair, linhas_adicionais);
+
+				if (sair > 0) {
+					return;
 				}
 			}
 		}
+		else {
+			printf(FORNECEDOR_NAO_ENCONTRADO);
+		}
 	}
 	else {
-		printf(FORNECEDOR_NAO_ENCONTRADO);
+		printf(NENHUM_CADASTRO);
 	}
 
 	system(PAUSAR);
@@ -970,7 +1028,12 @@ void movimentacaoProdutos() {
 
 		system(LIMPAR);
 
-		printf("======================================== Movimentação ========================================\n\n");
+		if (opcao == 1) {
+			printf("=================================== Movimentação - Aumento ===================================\n\n");
+		}
+		else {
+			printf("=================================== Movimentação - Desconto ==================================\n\n");
+		}
 
 		printf("============== Grupos ==============\n");
 		printf("[1]. Bebidas\n");
@@ -1023,9 +1086,9 @@ void movimentacaoProdutos() {
 				if (opcao == 1) {
 					for (int i = 0; i < cont_produto; i++) {
 						if (grupo_busca == produto[i].grupo) {
-							produto[i].pr_venda += (produto[i].pr_venda / 100) * percentual;
+							produto[i].lucro = produto[i].lucro + percentual;
 
-							produto[i].lucro = ((produto[i].pr_venda - produto[i].pr_compra) * 100) / produto[i].pr_compra;
+							produto[i].pr_venda = produto[i].pr_compra + (produto[i].pr_compra / 100) * produto[i].lucro;
 						}
 					}
 				}
@@ -1033,9 +1096,9 @@ void movimentacaoProdutos() {
 				else {
 					for (int i = 0; i < cont_produto; i++) {
 						if (grupo_busca == produto[i].grupo) {
-							produto[i].pr_venda -= (produto[i].pr_venda / 100) * percentual;
+							produto[i].lucro = produto[i].lucro - percentual;
 
-							produto[i].lucro = ((produto[i].pr_venda - produto[i].pr_compra) * 100) / produto[i].pr_compra;
+							produto[i].pr_venda = produto[i].pr_compra + (produto[i].pr_compra / 100) * produto[i].lucro;
 						}
 					}
 				}
@@ -1053,6 +1116,8 @@ void movimentacaoProdutos() {
 		}
 	}
 	else {
+		printf("======================================== Movimentação ========================================\n\n");
+
 		printf(NENHUM_CADASTRO);
 
 	}
@@ -1074,8 +1139,8 @@ int main() {
 		printf("===================================== Sistema de Estoque =====================================\n");
 		printf("<1>. Adicionar.\n");
 		printf("<2>. Alterar.\n");
-		printf("<3>. Buscar.\n");
-		printf("<4>. Excluir.\n");
+		printf("<3>. Excluir.\n");
+		printf("<4>. Buscar.\n");
 		printf("<5>. Relatórios.\n");
 		printf("<6>. Relatório especial.\n");
 		printf("<7>. Movimentação.\n");
@@ -1093,10 +1158,10 @@ int main() {
 			alterarDados();
 			break;
 		case 3:
-			menuBusca();
+			excluirProduto();
 			break;
 		case 4:
-			excluirProduto();
+			menuBusca();
 			break;
 		case 5:
 			menuListar();
