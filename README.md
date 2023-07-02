@@ -1,8 +1,20 @@
 <h1>Sistema-de-Estoque</h1>
 
-Sistema de estoque desenvolvido para apresentação na disciplina de Algoritimos e Programação Estruturada, no 1º período de Ciência da Computação na Uniandrade.
-- Linguagem C.
-- Visual Studio 2022.
+Sistema de estoque desenvolvido para a disciplina de Algoritimos e Programação Estruturada, no 1º período de Ciência da Computação na Uniandrade.
+- Cadastro
+- Alteração de dados
+- Busca
+- Exclusão
+- Relatórios
+- Movimentação
+
+<h3>Tecnologias</h3>
+<table>
+  <tr>
+    <td>C</td>
+    <td>Visual Studio 2022</td>
+  </tr>
+</table>
 
 <h3>Resultado final</h3>
 
