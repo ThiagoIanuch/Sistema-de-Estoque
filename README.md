@@ -4,8 +4,8 @@ Sistema de estoque desenvolvido para apresentação na disciplina de Algoritimos
 - Linguagem C.
 - Visual Studio 2022.
 
-<h3>Menu principal</h3>
 <img src="https://i.imgur.com/VLRJ1Xl.png">
 
-<h3>Listagem de produtos</h3>
-<img src="https://i.imgur.com/Pvje5C7.png">
+<h3>Resultado final</h3>
+
+![resultado](https://github.com/ThiagoIanuch/Sistema-de-Estoque/assets/63036139/259d65d3-a6fd-467e-beab-1395dcabacbd)
