@@ -4,5 +4,8 @@ Sistema de estoque desenvolvido para apresentação no 1º periódo de Ciência 
 - Linguagem C.
 - Visual Studio 2022.
 
+<h3>Menu principal</h3>
 <img src="https://i.imgur.com/VLRJ1Xl.png">
+
+<h3>Listagem de produtos</h3>
 <img src="https://i.imgur.com/Pvje5C7.png">
