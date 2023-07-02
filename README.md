@@ -12,11 +12,11 @@ Sistema de estoque desenvolvido para a disciplina de Algoritimos e Programação
 <table>
   <tr>
     <td>C</td>
-    <td>Visual Studio 2022</td>
+    <td>Visual Studio</td>
   </tr>
   <tr>
     <td>C90</td>
-    <td>Versão 17.5.4</td>
+    <td>2022 - 17.5.4</td>
   </tr>
 </table>
 
