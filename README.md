@@ -3,8 +3,8 @@
 Sistema de estoque desenvolvido para a disciplina de Algoritimos e Programação Estruturada, no 1º período de Ciência da Computação na Uniandrade.
 - Cadastro
 - Alteração de dados
-- Busca
 - Exclusão
+- Busca
 - Relatórios
 - Movimentação
 
