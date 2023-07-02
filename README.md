@@ -5,4 +5,4 @@ Sistema de estoque desenvolvido para apresentação no 1º periódo de Ciência 
 - Visual Studio 2022.
 
 <img src="https://i.imgur.com/VLRJ1Xl.png">
-<img src="https://i.imgur.com/2Vyrb27.png">
+<img src="https://i.imgur.com/Pvje5C7.png">
