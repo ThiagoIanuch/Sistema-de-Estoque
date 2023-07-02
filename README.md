@@ -14,6 +14,10 @@ Sistema de estoque desenvolvido para a disciplina de Algoritimos e Programação
     <td>C</td>
     <td>Visual Studio 2022</td>
   </tr>
+  <tr>
+    <td>C90</td>
+    <td>Versão 17.5.4</td>
+  </tr>
 </table>
 
 <h3>Resultado final</h3>
