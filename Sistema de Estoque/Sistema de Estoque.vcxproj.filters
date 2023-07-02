@@ -21,5 +21,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="estoque.dat" />
+    <None Include="..\README.md" />
   </ItemGroup>
 </Project>
