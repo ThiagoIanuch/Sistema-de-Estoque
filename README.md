@@ -1,13 +1,13 @@
 <h1>Sistema-de-Estoque</h1>
 
 Sistema de estoque desenvolvido para a disciplina de Algoritimos e Programação Estruturada, no 1º período de Ciência da Computação na Uniandrade.
-- Cadastro
-- Alteração de dados
-- Exclusão
-- Busca
-- Relatórios
-- Movimentação
-- Não é necessário conexão com um banco de dados, tudo é salvo em um arquivo .dat
+- Cadastro;
+- Alteração de dados;
+- Exclusão;
+- Busca;
+- Relatórios;
+- Movimentação;
+- Não é necessário conexão com um banco de dados, tudo é salvo em um arquivo .dat.
 
 <h3>Tecnologias</h3>
 <table>
@@ -27,5 +27,5 @@ Sistema de estoque desenvolvido para a disciplina de Algoritimos e Programação
 
 <h3>Utilização</h3>
 
-- Baixe o arquivo Sistema de Estoque.exe e execute
-- Caso necessário, baixe o arquivo estoque.dat, que contém alguns produtos cadastrados para teste
+- Baixe o Sistema de Estoque.exe e execute;
+- Cadastre os seus produtos ou então baixe o arquivo estoque.dat que já contém alguns produtos cadastrados para teste.
