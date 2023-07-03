@@ -21,11 +21,11 @@ Sistema de estoque desenvolvido para a disciplina de Algoritimos e Programação
   </tr>
 </table>
 
-<h3>Resultado final</h3>
+<h3>Resultado</h3>
 
 ![resultado](https://github.com/ThiagoIanuch/Sistema-de-Estoque/assets/63036139/259d65d3-a6fd-467e-beab-1395dcabacbd)
 
-<h3>Como utilizar</h3>
+<h3>Utilização</h3>
 
-- Baixe o arquivo Sistema de Estoque.exe e execute.
-- Caso necessário, baixe o arquivo estoque.dat, que contém alguns produtos cadastrados para teste.
+- Baixe o arquivo Sistema de Estoque.exe e execute
+- Caso necessário, baixe o arquivo estoque.dat, que contém alguns produtos cadastrados para teste
