@@ -7,6 +7,7 @@ Sistema de estoque desenvolvido para a disciplina de Algoritimos e Programação
 - Busca
 - Relatórios
 - Movimentação
+- Não é necessário conexão com um banco de dados, tudo é salvo em um arquivo .dat
 
 <h3>Tecnologias</h3>
 <table>
