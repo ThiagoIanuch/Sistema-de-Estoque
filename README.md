@@ -28,4 +28,4 @@ Sistema de estoque desenvolvido para a disciplina de Algoritimos e Programação
 <h3>Utilização</h3>
 
 - Baixe o arquivo Sistema de Estoque.exe e execute;
-- Cadastre os seus produtos ou então baixe o arquivo estoque.dat que já contém alguns produtos cadastrados para teste.
+- Cadastre os seus produtos ou baixe o arquivo estoque.dat que já contém alguns produtos cadastrados para teste.
